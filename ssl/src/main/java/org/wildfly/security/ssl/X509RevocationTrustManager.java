@@ -334,7 +334,6 @@ public class X509RevocationTrustManager extends X509ExtendedTrustManager {
 
     private class MaxPathLengthChecker extends PKIXCertPathChecker {
         private int maxPathLength;
-        private Set<String> supportedExts;
         private int i;
 
         MaxPathLengthChecker(int maxPathLength) {
@@ -355,7 +354,7 @@ public class X509RevocationTrustManager extends X509ExtendedTrustManager {
 
         @Override
         public Set<String> getSupportedExtensions() {
-            return supportedExts;
+            return null;
         }
 
         public void check(Certificate cert, Collection unresolvedCritExts)
@@ -366,12 +365,12 @@ public class X509RevocationTrustManager extends X509ExtendedTrustManager {
         }
 
         private void checkCertPathLength(X509Certificate currCert) throws CertPathValidatorException {
+            X500Principal subject = currCert.getSubjectX500Principal();
+            X500Principal issuer = currCert.getIssuerX500Principal();
 
             int pathLenConstraint = -1;
             if (currCert.getVersion() < 3) {    // version 1 or version 2
                 if (i == 1) {
-                    X500Principal subject = currCert.getSubjectX500Principal();
-                    X500Principal issuer = currCert.getIssuerX500Principal();
                     if (subject.equals(issuer)) {
                         pathLenConstraint = Integer.MAX_VALUE;
                     }
@@ -383,8 +382,7 @@ public class X509RevocationTrustManager extends X509ExtendedTrustManager {
             if (pathLenConstraint == -1) {
                 pathLenConstraint = maxPathLength;
             }
-            X500Principal subject = currCert.getSubjectX500Principal();
-            X500Principal issuer = currCert.getIssuerX500Principal();
+
             if (!subject.equals(issuer)) {
                 if (pathLenConstraint < i) {
                     throw new CertPathValidatorException
@@ -396,7 +394,6 @@ public class X509RevocationTrustManager extends X509ExtendedTrustManager {
             }
             if (pathLenConstraint < maxPathLength)
                 maxPathLength = pathLenConstraint;
-
         }
     }
 }
