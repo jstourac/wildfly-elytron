@@ -677,7 +677,26 @@ public class SSLAuthenticationTest {
     }
 
     @Test
-    public void testOcspTooLong() throws Exception {
+    public void testOcspMaxCertPathNeg1() throws Exception {
+        ocspMaxCertPathCommon(-1, false);
+    }
+
+    @Test
+    public void testOcspMaxCertPath0() throws Exception {
+        ocspMaxCertPathCommon(0, false);
+    }
+
+    @Test
+    public void testOcspMaxCertPathTooLong() throws Exception {
+        ocspMaxCertPathCommon(1, false);
+    }
+
+    @Test
+    public void testOcspMaxCertPathOkay() throws Exception {
+        ocspMaxCertPathCommon(2, true);
+    }
+
+    private void ocspMaxCertPathCommon(int maxCertPath, boolean expectValid) throws Exception {
         SSLContext serverContext = new SSLContextBuilder()
                 .setSecurityDomain(getKeyStoreBackedSecurityDomain("/ca/jks/beetles.keystore"))
                 .setKeyManager(getKeyManager("/ca/jks/scarab.keystore"))
@@ -685,12 +704,12 @@ public class SSLAuthenticationTest {
                         .setTrustManagerFactory(getTrustManagerFactory())
                         .setTrustStore(createKeyStore("/ca/jks/ca.truststore"))
                         .setOcspResponderCert(ocspResponderCertificate)
-                        .setMaxCertPath(1)
+                        .setMaxCertPath(maxCertPath)
                         .build())
                 .setNeedClientAuth(true)
                 .build().create();
 
-        performConnectionTest(serverContext, "protocol://test-two-way-ocsp-good.org", false);
+        performConnectionTest(serverContext, "protocol://test-two-way-ocsp-good.org", expectValid);
     }
 
     @Test
